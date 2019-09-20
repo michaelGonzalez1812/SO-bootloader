@@ -1,9 +1,9 @@
 ##Menu
 #  [1] Start
 #       Select Difficulty:
-#         [1] Fácil
+#         [1] Facil
 #         [2] Medio
-#         [3] Difícil
+#         [3] Dificil
 #  [2] Options
 #       Options:
 #         [1][x] Walls
@@ -96,12 +96,11 @@ menu_screen1:   call    clear
                 movb    $'1', vga_memory + 160*12+62
                 movb    $']', vga_memory + 160*12+64
                 movb    $' ', vga_memory + 160*12+66
-                movb    $'T', vga_memory + 160*12+68
-                movb    $'u', vga_memory + 160*12+70
-                movb    $'r', vga_memory + 160*12+72
-                movb    $'t', vga_memory + 160*12+74
+                movb    $'F', vga_memory + 160*12+68
+                movb    $'a', vga_memory + 160*12+70
+                movb    $'c', vga_memory + 160*12+72
+                movb    $'i', vga_memory + 160*12+74
                 movb    $'l', vga_memory + 160*12+76
-                movb    $'e', vga_memory + 160*12+78
 
                 movb    $'[', vga_memory + 160*14+60
                 movb    $'2', vga_memory + 160*14+62
