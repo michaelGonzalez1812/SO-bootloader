@@ -73,7 +73,7 @@ new_game:       call    clear
 
 #The game loop
 #EAX: Holds the collision information (true or false)
-#EBX: Holds the timing speed (Turtle, Llama and Cheetah)
+#EBX: Holds the timing speed (Facil, Medio and Dificil)
 #ECX: Holds the wall portal option (0: disable, 1: enabled)
 
 update_loop:    call    handle_input
@@ -193,7 +193,7 @@ clear:          pushl   %eax
 time:           .long   0       #The timer in ms. Important note: This game was developed in a virtual machine
                                 #which has a much lower (virtual) oscillator frequency than that of an actual
                                 #machine. For an actual machine the correct timer frequency is 1000Hz,
-                                #and the correct speeds for Turtle, Llama and Cheetah are 300, 600 and 900
+                                #and the correct speeds for Facil, Medio and Dificil are 300, 600 and 900
                                 #respectively.
 score:          .long   0       #The score
 score_inc:      .byte   0       #The score increment

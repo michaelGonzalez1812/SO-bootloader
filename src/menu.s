@@ -1,9 +1,9 @@
 ##Menu
 #  [1] Start
 #       Select Difficulty:
-#         [1] Turtle
-#         [2] Llama
-#         [3] Cheetah
+#         [1] Fácil
+#         [2] Medio
+#         [3] Difícil
 #  [2] Options
 #       Options:
 #         [1][x] Walls
