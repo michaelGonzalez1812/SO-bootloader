@@ -63,11 +63,6 @@ _initmap:
 	inc bx
 	cmp bx, 2000
 	jne .loop
-	
-	mov dh, 26
-	mov dl, 3
-	mov cx, newchar
-	call _pchar
 
 	pop dx
 	pop cx
@@ -87,7 +82,7 @@ _mapupdate:
 	xor bx, bx
 	xor dx, dx
 
-	mov cx, newchar
+	mov cx, airchar
 .loop:
 	mov al,byte [lifemap+bx]
 	cmp al, 0
@@ -110,11 +105,6 @@ _mapupdate:
 	inc bx
 	cmp bx, 2000
 	jne .loop	
-
-	mov dh, 1
-	mov dl, 25
-	mov cx, newchar
-	call _pchar
 
 	pop dx
 	pop cx
@@ -596,12 +586,10 @@ snakeYpos db 20
 
 videomemseg equ 0xB800
 
-airchar    equ 0x08BA
+airchar    equ 0x0000
 borderchar equ 0x60B0
 snakechar  equ 0x2020
 applechar  equ 0x4023
-
-newchar    equ 0x1210
 
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 
