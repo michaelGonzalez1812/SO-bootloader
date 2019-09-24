@@ -7,3 +7,7 @@ main.o: src/main.asm
 
 boot.o: src/boot.asm
 	nasm src/boot.asm -o build/boot 
+
+Phony: clean
+clean:
+	rm build/*
