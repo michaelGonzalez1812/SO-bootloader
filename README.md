@@ -1,7 +1,32 @@
 # SO-bootloader
 
-Ejecutarlo
-qemu-system-x86_64 -fda floppy.img 
+Prerequisitos
 
-Tomado de 
-https://github.com/Balletie/Snake
+```
+instalar make
+instalar qemu
+```
+
+## Instrucciones de compilación
+
+Abra una terminal en la carpeta raiz del proyecto y ejecute los siguientes comandos
+```
+mkdir build
+make
+```
+## Instrucciones de uso
+
+Para ejectuar utilizando el emulador qemu ejecute el siguiente comando
+```
+qemu-system-x86_64 -fda build/snake.flp
+```
+
+para crear una dispositivo usb booteable ejecute el siguiente comando con permisos de superusuario
+
+```
+dd if=build/snake.flp of=device/path
+```
+
+Este proyecto son modificaciones al proyecto del siguiente repositorio:
+
+https://github.com/zakrent/Assembly-Snake-Bootable.git
