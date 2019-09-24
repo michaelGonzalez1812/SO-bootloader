@@ -106,11 +106,29 @@ _mapupdate:
 	cmp bx, 2000
 	jne .loop	
 
+	;update the apple count
+	mov dl, 24
+	mov dh, 4
+	xor eax, eax
+	mov al, byte [applecont]
+	call _inttostr
+	mov cx, di
+	mov ch, 0x12
+	call _pchar
+	
+	mov dl, 24
+	mov dh, 6
+	shr edi, 8
+	mov cx, di
+	mov ch, 0x12
+	call _pchar
+
 	pop dx
 	pop cx
 	pop bx
 	pop ax
 	ret
+
 
 ;Updates snake
 ;Input  :
@@ -167,6 +185,8 @@ _snakeupdate:
 	
 	inc byte [length]
 	call _newapple
+	;aumentamos el contador de manzanas
+	inc byte [applecont]
 .skip2:
 	mov [typemap+bx], byte 0x2
 	mov al, [length]
@@ -493,6 +513,42 @@ _clear:
 	pop AX
 	ret
 
+;input:
+;	EAX: number
+;output:
+;	EDI: ascii array
+_inttostr:
+	push ax
+	push bx
+	push cx
+	push dx
+
+    mov ebx, 0xCCCCCCCD             
+    xor edi, edi
+.loop:
+    mov ecx, eax                    ; save original number
+
+    mul ebx                         ; divide by 10 using agner fog's 'magic number'
+    shr edx, 3                      ;
+
+    mov eax, edx                    ; store it back into eax
+
+    lea edx, [edx*4 + edx]          ; multiply by 10
+    lea edx, [edx*2 - '0']          ; and ascii it
+    sub ecx, edx                    ; subtract from original number to get remainder
+
+    shl edi, 8                      ; shift in to least significant byte
+    or edi, ecx                     ;
+
+    test eax, eax
+    jnz .loop 
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 ;Prints char to given x,y with given attribs
 ;Input  : CH - background color, text color
 ;	  CL - ASCII char
@@ -523,26 +579,6 @@ _pchar:
 	pop BX
 	pop AX
 	ret
-
-;Prints null-terminated string
-;Input  : SI - pointer to string
-;Output :
-_print:
-	push ax
-	push bx
-	mov ah, 0xe
-	mov bh, 0
-	mov bl, 0x7
-.loop:
-	lodsb ;loads the character in to al from si reg
-	cmp al, 0
-	je .exit
-	int 0x10
-	jmp .loop	
-.exit:
-	pop bx
-	pop ax
-	ret
 	
 ;Prints commands to play
 ;Input  : SI - pointer to string
@@ -560,7 +596,7 @@ _printcmds:
 	cmp al, 0
 	je .exit
 	mov cl, al
-	or ch, 0x12
+	mov ch, 0x12
 	call _pchar
 	inc dh
 	jmp .loop
@@ -583,6 +619,9 @@ length db 2
 
 snakeXpos db 70
 snakeYpos db 20
+
+;lleva la cuenta de manzanas
+applecont db 0
 
 videomemseg equ 0xB800
 
