@@ -1,18 +1,9 @@
+all: main.o boot.o
+	cat build/boot > build/snake.flp
+	cat build/main >> build/snake.flp
 
-boot.elf: $(wildcard bootlib/*.s src/*.s)
-	gcc -g -nostdlib -m32 -Wl,-Tbootlib/boot.ld -o $@ $^
+main.o: src/main.asm
+	nasm src/main.asm -o build/main	
 
-boot.img: boot.elf
-	objcopy -S $< $@
-
-floppy.img: bootlib/floppy_template.img boot.img
-	cat $^ > $@
-
-.PHONY: test
-test: floppy.img
-	bochs -f bootlib/bochs.bxrc
-
-.PHONY: clean
-clean:
-	rm -f boot.elf boot.img floppy.img
-
+boot.o: src/boot.asm
+	nasm src/boot.asm -o build/boot 
