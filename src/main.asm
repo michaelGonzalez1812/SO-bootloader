@@ -755,7 +755,7 @@ applecont db 0
 
 videomemseg equ 0xB800
 
-airchar    equ 0x08B0
+airchar    equ 0x0000
 borderchar equ 0x30B0
 snakechar  equ 0x5020
 applechar  equ 0x4023
