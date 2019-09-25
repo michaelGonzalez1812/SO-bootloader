@@ -1,5 +1,5 @@
+[ORG 0x8000]
 [BITS 16]
-[ORG 0x10000]
 
 _main:
 	call _initpic
@@ -738,6 +738,8 @@ _printcmds:
 	ret
 
 ;------------------------------
+cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
+
 sleepleft dw 0
 
 currentPRN dw 0
@@ -760,7 +762,6 @@ applechar  equ 0x4023
 lemonchar  equ 0x2023
 orangechar  equ 0x6023
 
-cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 
 times 2048-($-$$) db 0
 
