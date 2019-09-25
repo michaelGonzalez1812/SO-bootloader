@@ -762,7 +762,7 @@ orangechar  equ 0x6023
 
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 
-times 1024-($-$$) db 0
+times 2048-($-$$) db 0
 
 section .bss
 
