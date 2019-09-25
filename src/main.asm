@@ -12,6 +12,8 @@ _main:
 	call _printcmds
 
 	call _newapple
+	call _newlemon
+	call _neworange
 
 .loop:
 	call _stepPRNG
@@ -184,7 +186,7 @@ _snakeupdate:
 	jne .skip2
 	
 	inc byte [length]
-	call _newapple
+	call _newapple ; llamada a crear la fruta nueva despues de comerla
 	;aumentamos el contador de manzanas
 	inc byte [applecont]
 .skip2:
@@ -270,6 +272,129 @@ _newapple:
 	pop ax
 
 	ret
+
+;Creates new lemon on the map
+;Input  :
+;Output :
+_newlemon:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	xor dx, dx
+	mov ax, [currentPRN]
+	mov bx, 78
+	div bx
+		
+	mov cl, dl	
+	inc cl
+	
+	call _stepPRNG
+
+	xor dx, dx
+	mov ax, [currentPRN]
+	mov bx, 23	
+	div bx
+	
+	mov ch, dl
+	inc ch	
+
+	mov dx, cx
+	mov cx, lemonchar
+	
+	xor dh, dl
+	xor dl, dh
+	xor dh, dl
+
+	push dx
+
+	call _pchar
+
+	pop dx	
+	
+	xor ax, ax
+	mov al, dl
+	mov bl, 80
+	mul bl
+		
+	movzx dx, dh		
+
+	add ax, dx
+
+	mov bx, ax
+
+	mov ax, 3
+	mov [typemap+bx], ax
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
+;Creates new orange on the map
+;Input  :
+;Output :
+_neworange:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	xor dx, dx
+	mov ax, [currentPRN]
+	mov bx, 78
+	div bx
+		
+	mov cl, dl	
+	inc cl
+	
+	call _stepPRNG
+
+	xor dx, dx
+	mov ax, [currentPRN]
+	mov bx, 23	
+	div bx
+	
+	mov ch, dl
+	inc ch	
+
+	mov dx, cx
+	mov cx, orangechar
+	
+	xor dh, dl
+	xor dl, dh
+	xor dh, dl
+
+	push dx
+
+	call _pchar
+
+	pop dx	
+	
+	xor ax, ax
+	mov al, dl
+	mov bl, 80
+	mul bl
+		
+	movzx dx, dh		
+
+	add ax, dx
+
+	mov bx, ax
+
+	mov ax, 3
+	mov [typemap+bx], ax
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
 
 ;Checks if given index is index of map border
 ;Input  : bx - index
@@ -449,17 +574,20 @@ _handle1:
 	in al, 0x60 ;key buffer
 	
 	mov bl, [direction]
-	cmp al, 0x11
+	cmp al, 0x48
 	mov [direction], byte 0
 	je .exit
-	cmp al, 0x1f
+	cmp al, 0x50
 	mov [direction], byte 2
 	je .exit
-	cmp al, 0x20
+	cmp al, 0x4d
 	mov [direction], byte 1
 	je .exit
-	cmp al, 0x1e
+	cmp al, 0x4b
 	mov [direction], byte 3
+	je .exit
+	cmp al, 0xa6
+	mov [direction], byte 4
 	je .exit
 	mov [direction], bl
 .exit:
@@ -625,10 +753,12 @@ applecont db 0
 
 videomemseg equ 0xB800
 
-airchar    equ 0x0000
-borderchar equ 0x60B0
-snakechar  equ 0x2020
+airchar    equ 0x08B0
+borderchar equ 0x30B0
+snakechar  equ 0x5020
 applechar  equ 0x4023
+lemonchar  equ 0x2023
+orangechar  equ 0x6023
 
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 
