@@ -1,5 +1,5 @@
+[ORG 0x8000]
 [BITS 16]
-[ORG 0x10000]
 
 _main:
 	call _initpic
@@ -610,6 +610,8 @@ _printcmds:
 	ret
 
 ;------------------------------
+cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
+
 sleepleft dw 0
 
 currentPRN dw 0
@@ -630,9 +632,7 @@ borderchar equ 0x60B0
 snakechar  equ 0x2020
 applechar  equ 0x4023
 
-cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
-
-times 1024-($-$$) db 0
+times 2048-($-$$) db 0
 
 section .bss
 
