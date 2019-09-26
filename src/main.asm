@@ -6,7 +6,10 @@ _main:
 
 	mov si, menulvl ; crea el menu
 	call _printmenu ; imprime el menu
+.loop1:
 	call _waitlvl
+	cmp ax, 1
+	je .loop1
 
 	call _initpic
 	call _initirq1
@@ -194,6 +197,8 @@ _snakeupdate:
 	inc byte [length]
 	call _newapple ; llamada a crear la fruta nueva despues de comerla
 	;aumentamos el contador de manzanas
+	call _neworange ; llamada a crear la fruta nueva despues de comerla
+	call _newlemon ; llamada a crear la fruta nueva despues de comerla
 	inc byte [applecont]
 .skip2:
 	mov [typemap+bx], byte 0x2
@@ -774,8 +779,17 @@ _printmenu:
 
 ; Waits until press a key for level
 _waitlvl:
-.lll:
-	;je .lll
+	push ax
+	push bx
+	in al, 0x60 ;key buffer
+.selectlvl:
+	cmp al, 0xa6
+	je .selectlvl
+.exit:
+	mov al, 0x20
+	out 0x20, al
+	pop bx
+	pop ax
 	ret
 
 ;------------------------------
