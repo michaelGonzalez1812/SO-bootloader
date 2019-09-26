@@ -2,9 +2,22 @@
 [BITS 16]
 
 _main:
+	call _clear ; limpia la ppantalla
+
+	mov si, menulvl ; crea el menu
+	call _printmenu ; imprime el menu
+;.loop1:
+;	call _waitlvl
+;	cmp ax, 1
+;	je .loop1
+
 	call _initpic
 	call _initirq1
 
+	call _waitlvl
+
+_initgame:
+	call _clear ; limpia la ppantalla
 	call _initPRNG
 	call _initmap	
 
@@ -239,6 +252,8 @@ _snakeupdate:
 	inc byte [length]
 	call _newapple ; llamada a crear la fruta nueva despues de comerla
 	;aumentamos el contador de manzanas
+	call _neworange ; llamada a crear la fruta nueva despues de comerla
+	call _newlemon ; llamada a crear la fruta nueva despues de comerla
 	inc byte [applecont]
 .skip2:
 	mov [typemap+bx], byte 0x2
@@ -640,6 +655,19 @@ _handle1:
 	cmp al, 0xa6
 	mov [direction], byte 4
 	je .exit
+
+	cmp al, 0x82
+	mov [menukey], byte 1
+	je .exit
+
+	cmp al, 0x83
+	mov [menukey], byte 2
+	je .exit
+
+	cmp al, 0x84
+	mov [menukey], byte 3
+	je .exit
+
 	mov [direction], bl
 .exit:
 	mov al, 0x20
@@ -788,8 +816,72 @@ _printcmds:
 
 	ret
 
+;Prints menu to select difficulty
+;Input  : SI - pointer to string
+_printmenu:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	xor dl, 10
+	xor dh, 20
+
+.loop:
+	lodsb
+	cmp al, 0
+	je .exit
+	mov cl, al
+	mov ch, 0x12
+	call _pchar
+	inc dh
+	jmp .loop
+
+.exit:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
+; Waits until press a key for level
+_waitlvl:
+	push ax
+	push bx
+
+.loop:
+	mov al, byte[direction]
+	cmp al, 0x00
+	je .loop
+
+	cmp al, 0x1
+	je .level1
+
+	cmp al, 0x2
+	je .level2
+
+	cmp al, 0x3
+	je .level3
+
+.level1:
+	jmp _initgame
+.level2:
+	jmp _initgame
+.level3:
+	jmp _initgame
+
+	;hacer algo segun menukey
+
+	mov [menukey], byte 0x00
+	pop bx
+	pop ax
+	ret
+
 ;------------------------------
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
+
+menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
 
 sleepleft dw 0
 
@@ -797,6 +889,8 @@ currentPRN dw 0
 
 direction db 0
 length db 2
+
+menukey db 0
 
 snakeXpos db 70
 snakeYpos db 20

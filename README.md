@@ -24,7 +24,7 @@ qemu-system-x86_64 -fda build/snake.flp
 para crear una dispositivo usb booteable ejecute el siguiente comando con permisos de superusuario
 
 ```
-dd if=build/snake.flp of=device/path
+sudo dd if=build/snake.bin of=device/path
 ```
 
 Este proyecto son modificaciones al proyecto del siguiente repositorio:
