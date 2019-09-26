@@ -66,6 +66,57 @@ _initmap:
 	cmp bx, 2000
 	jne .loop
 
+	mov dl, 4
+	mov dh, 4
+	mov cl, 4
+	mov ch, 1
+;	call _makewall
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+
+
+;*****************************************
+; description: modify the typemap matrix
+; input:
+;	dl -> x 4
+;	dh -> y 4
+;	cl -> lenght 4
+;	ch -> horizontal? 1
+; output:
+;*****************************************
+_makewall:
+	push ax
+	push bx
+	push cx
+	push dx
+
+.loop1:
+	xor ax, ax
+	mov al, dl
+	mov bx, 80
+	mul bx
+	add al, dh
+	xor bx, bx
+	mov bx, ax
+	
+	mov [typemap+bx], byte 0x1
+;	push cx
+	xor cx, cx
+	mov cx, borderchar
+	;mov dl, 4
+	;mov dh, 4
+	call _pchar
+;	pop cx
+	inc dl
+	cmp dl, 10
+	jne .loop1
+
 	pop dx
 	pop cx
 	pop bx
@@ -680,8 +731,8 @@ _inttostr:
 ;Prints char to given x,y with given attribs
 ;Input  : CH - background color, text color
 ;	  CL - ASCII char
-;	  DH - x pos
-;	  DL - y pos
+;	  DH - y pos
+;	  DL - x pos
 ;Output :	
 _pchar:
 	push AX
@@ -762,10 +813,10 @@ applechar  equ 0x4023
 lemonchar  equ 0x2023
 orangechar  equ 0x6023
 
-
-times 2048-($-$$) db 0
+times 4096-($-$$) db 0
 
 section .bss
 
 typemap resb 2000
 lifemap resb 2000
+
