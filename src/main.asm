@@ -6,14 +6,18 @@ _main:
 
 	mov si, menulvl ; crea el menu
 	call _printmenu ; imprime el menu
-.loop1:
-	call _waitlvl
-	cmp ax, 1
-	je .loop1
+;.loop1:
+;	call _waitlvl
+;	cmp ax, 1
+;	je .loop1
 
 	call _initpic
 	call _initirq1
 
+	call _waitlvl
+
+_initgame:
+	call _clear ; limpia la ppantalla
 	call _initPRNG
 	call _initmap	
 
@@ -600,6 +604,19 @@ _handle1:
 	cmp al, 0xa6
 	mov [direction], byte 4
 	je .exit
+
+	cmp al, 0x82
+	mov [menukey], byte 1
+	je .exit
+
+	cmp al, 0x83
+	mov [menukey], byte 2
+	je .exit
+
+	cmp al, 0x84
+	mov [menukey], byte 3
+	je .exit
+
 	mov [direction], bl
 .exit:
 	mov al, 0x20
@@ -781,13 +798,31 @@ _printmenu:
 _waitlvl:
 	push ax
 	push bx
-	in al, 0x60 ;key buffer
-.selectlvl:
-	cmp al, 0xa6
-	je .selectlvl
-.exit:
-	mov al, 0x20
-	out 0x20, al
+
+.loop:
+	mov al, byte[direction]
+	cmp al, 0x00
+	je .loop
+
+	cmp al, 0x1
+	je .level1
+
+	cmp al, 0x2
+	je .level2
+
+	cmp al, 0x3
+	je .level3
+
+.level1:
+	jmp _initgame
+.level2:
+	jmp _initgame
+.level3:
+	jmp _initgame
+
+	;hacer algo segun menukey
+
+	mov [menukey], byte 0x00
 	pop bx
 	pop ax
 	ret
@@ -803,6 +838,8 @@ currentPRN dw 0
 
 direction db 0
 length db 2
+
+menukey db 0
 
 snakeXpos db 70
 snakeYpos db 20
