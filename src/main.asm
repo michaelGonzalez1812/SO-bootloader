@@ -2,6 +2,12 @@
 [BITS 16]
 
 _main:
+	call _clear ; limpia la ppantalla
+
+	mov si, menulvl ; crea el menu
+	call _printmenu ; imprime el menu
+	call _waitlvl
+
 	call _initpic
 	call _initirq1
 
@@ -737,8 +743,45 @@ _printcmds:
 
 	ret
 
+;Prints menu to select difficulty
+;Input  : SI - pointer to string
+_printmenu:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	xor dl, 10
+	xor dh, 20
+
+.loop:
+	lodsb
+	cmp al, 0
+	je .exit
+	mov cl, al
+	mov ch, 0x12
+	call _pchar
+	inc dh
+	jmp .loop
+
+.exit:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
+; Waits until press a key for level
+_waitlvl:
+.lll:
+	;je .lll
+	ret
+
 ;------------------------------
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
+
+menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
 
 sleepleft dw 0
 
