@@ -22,7 +22,19 @@ _initgame:
 	call _initmap	
 
 	mov si, cmdmsg
-	call _printcmds
+	mov dh, 0x2
+	mov dl, 0x0
+	call _printstr
+
+	mov si, applestr
+	mov dh, 0x1
+	mov dl, 24
+	call _printstr
+
+	mov si, levelstr
+	mov dh, 43
+	mov dl, 24
+	call _printstr
 
 	call _newapple
 	call _newlemon
@@ -79,6 +91,18 @@ _initmap:
 	cmp bx, 2000
 	jne .loop
 
+
+	;update the apple count
+	mov dl, 24
+	mov dh, 50
+	xor eax, eax
+	mov al, byte [menukey]
+	call _inttostr
+	mov cx, di
+	mov ch, 0x12
+	call _pchar
+
+	
 	mov dl, 4
 	mov dh, 4
 	mov cl, 4
@@ -174,7 +198,7 @@ _mapupdate:
 
 	;update the apple count
 	mov dl, 24
-	mov dh, 4
+	mov dh, 9
 	xor eax, eax
 	mov al, byte [applecont]
 	call _inttostr
@@ -183,7 +207,7 @@ _mapupdate:
 	call _pchar
 	
 	mov dl, 24
-	mov dh, 6
+	mov dh, 10
 	shr edi, 8
 	mov cx, di
 	mov ch, 0x12
@@ -656,19 +680,21 @@ _handle1:
 	mov [direction], byte 4
 	je .exit
 
-	cmp al, 0x82
-	mov [menukey], byte 1
-	je .exit
-
-	cmp al, 0x83
-	mov [menukey], byte 2
-	je .exit
-
-	cmp al, 0x84
-	mov [menukey], byte 3
-	je .exit
-
 	mov [direction], bl
+
+	cmp al, 0x02
+	mov [menukey], byte 0x1
+	je .exit
+
+	cmp al, 0x03
+	mov [menukey], byte 0x2
+	je .exit
+
+	cmp al, 0x04
+	mov [menukey], byte 0x3
+	je .exit
+
+	
 .exit:
 	mov al, 0x20
 	out 0x20, al
@@ -788,15 +814,15 @@ _pchar:
 	ret
 	
 ;Prints commands to play
-;Input  : SI - pointer to string
-_printcmds:
+;Input: 
+;	- SI - pointer to string
+;	- dh - y initial pos
+;	- dl - x initial pos
+_printstr:
 	push ax
 	push bx
 	push cx
 	push dx
-
-	xor dl, dl
-	xor dh, dh
 
 .loop:
 	lodsb
@@ -849,9 +875,11 @@ _printmenu:
 _waitlvl:
 	push ax
 	push bx
+	
+	mov [menukey], byte 0x00
 
 .loop:
-	mov al, byte[direction]
+	mov al, byte[menukey]
 	cmp al, 0x00
 	je .loop
 
@@ -871,17 +899,17 @@ _waitlvl:
 .level3:
 	jmp _initgame
 
-	;hacer algo segun menukey
-
-	mov [menukey], byte 0x00
 	pop bx
 	pop ax
 	ret
 
 ;------------------------------
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
-
 menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
+applestr db "apples: ", 0
+levelstr db "level: ", 0
+
+
 
 sleepleft dw 0
 
