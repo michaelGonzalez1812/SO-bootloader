@@ -2,14 +2,10 @@
 [BITS 16]
 
 _main:
-	call _clear ; limpia la ppantalla
+	call _clear 					;limpia la ppantalla
 
-	mov si, menulvl ; crea el menu
-	call _printmenu ; imprime el menu
-;.loop1:
-;	call _waitlvl
-;	cmp ax, 1
-;	je .loop1
+	mov si, menulvl 				;crea el menu
+	call _printmenu 				;imprime el menu
 
 	call _initpic
 	call _initirq1
@@ -17,7 +13,7 @@ _main:
 	call _waitlvl
 
 _initgame:
-	call _clear ; limpia la ppantalla
+	call _clear 					;limpia la ppantalla
 	call _initPRNG
 	call _initmap	
 
@@ -41,6 +37,7 @@ _initgame:
 	call _neworange
 
 .loop:
+	call _reset
 	call _stop
 	call _stepPRNG
 	call _mapupdate
@@ -143,7 +140,7 @@ _makewall:
 	xor bx, bx
 	mov bx, ax
 	
-	mov [typemap+bx], byte 0x1
+	mov [typemap+bx], byte 0x1			;codigo de pared = 1
 ;	push cx
 	xor cx, cx
 	mov cx, borderchar
@@ -183,7 +180,7 @@ _mapupdate:
 	dec byte [lifemap+bx]	
 	jmp .skip
 .nolife:
-	mov byte [typemap+bx], 0
+	mov byte [typemap+bx], 0			;codigo de aire = 0
 	mov byte [lifemap+bx], 0xff
 	call _pchar
 .skip:
@@ -267,21 +264,37 @@ _snakeupdate:
 	mov bx, ax
 	
 	mov al, [typemap+bx]
-	cmp al, 1
+	cmp al, 1						;compara con pared
 	je .failure
-	cmp al, 2
+	cmp al, 2						;compara con serpiente
 	je .failure
-	cmp al, 3
+	cmp al, 3						;compara con manzana
+	je .appleupdate
+	cmp al, 4						;compara con limon
+	je .lemonupdate
+	cmp al, 5						;compara con naranja
+	je .orangeupdate
 	jne .skip2
-	
+
+.appleupdate:
 	inc byte [length]
-	call _newapple ; llamada a crear la fruta nueva despues de comerla
-	;aumentamos el contador de manzanas
-	call _neworange ; llamada a crear la fruta nueva despues de comerla
-	call _newlemon ; llamada a crear la fruta nueva despues de comerla
+	call _newapple 					;llamada a crear la fruta nueva despues de comerla
+	call _neworange 				;llamada a crear la fruta nueva despues de comerla
+	call _newlemon 					;llamada a crear la fruta nueva despues de comerla
 	inc byte [applecont]
+	jmp .skip2
+.lemonupdate:
+	inc byte [length]
+	inc byte [length]
+	inc byte [length]
+	jmp .skip2
+.orangeupdate:
+	dec byte [length]
+	call _snakeupdate
+	jmp .skip2
+
 .skip2:
-	mov [typemap+bx], byte 0x2
+	mov [typemap+bx], byte 0x2		;codigo de serpiente = 2
 	mov al, [length]
 	mov [lifemap+bx], al 
 	mov cx, snakechar
@@ -354,7 +367,7 @@ _newapple:
 
 	mov bx, ax
 
-	mov ax, 3
+	mov ax, 3						;codigo de manzana = 3
 	mov [typemap+bx], ax
 	
 	pop dx
@@ -415,7 +428,7 @@ _newlemon:
 
 	mov bx, ax
 
-	mov ax, 3
+	mov ax, 4						;codigo de limon = 4
 	mov [typemap+bx], ax
 	
 	pop dx
@@ -476,7 +489,7 @@ _neworange:
 
 	mov bx, ax
 
-	mov ax, 3
+	mov ax, 5						;codigo de naranje = 5
 	mov [typemap+bx], ax
 	
 	pop dx
@@ -485,6 +498,52 @@ _neworange:
 	pop ax
 
 	ret
+
+;print all the fruits
+_updatefruits:
+	push ax
+	push bx
+	push cx
+	push dx
+	mov bx, 0
+.loop:
+	cmp bx, [length]
+	je .exit
+	mov al, [typemap+bx]
+	inc bx							;aumenta el indice el array
+	;mov ebx, bx
+	mov ecx, 0x80
+	idiv ecx						;division ecx/ebx
+	cmp al, 3
+	je .printapple
+	cmp al, 4
+	je .printlemon
+	cmp al, 5
+	je .printorange
+	jne .loop
+
+.printapple:
+	mov cl, [applechar]
+	;mov dh, eax
+	;mov dl, edx
+	
+.printlemon:
+	mov cl, [applechar]
+	;mov dh, eax
+	;mov dl, edx
+
+.printorange:
+	mov cl, [applechar]
+	;mov dh, eax
+	;mov dl, edx
+
+.exit:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 
 
 ;Checks if given index is index of map border
@@ -663,6 +722,13 @@ _handle1:
 	push ax
 	push bx
 	in al, 0x60 ;key buffer
+
+
+	mov bl, [reset]
+	cmp al, 0x93
+	mov [reset], byte 0x1
+	je .exit
+	mov [reset], bl
 	
 	mov bl, [direction]
 	cmp al, 0x48
@@ -710,7 +776,10 @@ _handle1:
 	out 0x20, al
 	pop bx
 	pop ax
-	iret		
+	iret	
+
+.reset:
+call _initgame	
 
 ;Handle IRQ0
 ;Input  :
@@ -881,18 +950,30 @@ _printmenu:
 
 	ret
 
-
+;Pause the game
 _stop:
 	push ax
 	push bx
 	push cx
 	push dx
+	mov bl, [stop1]
+	cmp bl, byte 0
+	je .loop
+.clearpause:
+	call _clear
+	mov si, menupause 				;crea el menu
+	call _printmenu 				;imprime el menu pausa
 
 .loop:
 	mov bl, [stop1]
 	cmp bl, byte 1
 	je .loop
 
+	;call _initmap
+	;call _printstr
+	;call _mapupdate
+	;call _snakeupdate
+	;call _updatefruits
 	pop dx
 	pop cx
 	pop bx
@@ -900,6 +981,24 @@ _stop:
 
 	ret
 
+;reset the game
+_reset:
+	push ax
+	push bx
+	push cx
+	push dx
+	mov bl, [reset]
+	cmp bl, byte 1
+	jne .skip
+	mov [reset], byte 0
+	jmp _initgame
+.skip:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
 
 
 ; Waits until press a key for level
@@ -937,6 +1036,7 @@ _waitlvl:
 ;------------------------------
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
+menupause db ": Restart[r] || Quit: [q]",0
 applestr db "apples: ", 0
 levelstr db "level: ", 0
 
@@ -950,6 +1050,8 @@ direction db 0
 length db 2
 
 stop1 db 0
+
+reset db 0
 
 menukey db 0
 
