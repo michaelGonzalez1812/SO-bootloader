@@ -713,49 +713,93 @@ _updatefruits:
 	push cx
 	push dx
 
-	mov bx, 0
+	xor bx, bx
 	xor ax, ax
 .loop:
-	cmp ax, 2000
+	cmp bx, 2000
 	je .exit
 
-	mov bx, ax
 	mov cl, byte [typemap+bx]
-	xor bx, bx
-	mov bl, cl
-	xor cx, cx
-	mov cx, 80
 	
-	push bx
-	push ax
-	div cx							;division ebx/ecx
-	mov dh, dl
-	mov dl, al
-	pop ax
-	pop bx
-
-	cmp bl, 3
+	cmp cl, 0
+	je .next
+	cmp cl, 1
+	je .printwall
+	cmp cl, 2
+	je .printsnake
+	cmp cl, 3
 	je .printapple
-	cmp bl, 4
+	cmp cl, 4
 	je .printlemon
-	cmp bl, 5
+	cmp cl, 5
 	je .printorange
+
 	jmp .next
 
+.printwall:
+	mov cx, 80
+	mov ax, bx
+	xor dx, dx
+	div cx						;division ebx/ecx
+	xor cx, cx
+	mov cx, dx
+	mov dh, cl
+	mov dl, al
+	mov cx, borderchar
+	call _pchar
+
+	jmp .next
+
+.printsnake:
+	mov cx, 80
+	mov ax, bx
+	xor dx, dx
+	div cx						;division ebx/ecx
+	mov dh, dl
+	mov dl, al
+	mov cx, borderchar
+
+	mov cx, snakechar
+	call _pchar
+	jmp .next
 .printapple:
+	mov cx, 80
+	mov ax, bx
+	xor dx, dx
+	div cx						;division ebx/ecx
+	mov dh, dl
+	mov dl, al
+	mov cx, borderchar
+
 	mov cx, applechar
 	call _pchar
 	jmp .next
 .printlemon:
+	mov cx, 80
+	mov ax, bx
+	xor dx, dx
+	div cx						;division ebx/ecx
+	mov dh, dl
+	mov dl, al
+	mov cx, borderchar
+
 	mov cx, lemonchar
 	call _pchar
 	jmp .next
 .printorange:
+	mov cx, 80
+	mov ax, bx
+	xor dx, dx
+	div cx						;division ebx/ecx
+	mov dh, dl
+	mov dl, al
+	mov cx, borderchar
+
 	mov cx, orangechar
 	call _pchar
 
 .next:
-	inc ax 
+	inc bx 
 	jmp .loop
 
 .exit:
@@ -763,6 +807,7 @@ _updatefruits:
 	pop cx
 	pop bx
 	pop ax
+
 	ret
 
 
@@ -1031,7 +1076,7 @@ _clear:
 .clearRow:
 	xor DH, DH
 .rowloop:
-	mov CL, 0x20
+	mov CL, 0x00
 	call _pchar
 	inc DH
 	cmp DH, 80
@@ -1197,7 +1242,27 @@ _stop:
 	call _clear
 
 	call _updatefruits
+
+	;update the apple count
+	mov dl, 24
+	mov dh, 50
+	xor eax, eax
+	mov al, byte [menukey]
+	call _inttostr
+	mov cx, di
+	mov ch, 0x12
+	call _pchar
 	
+	mov si, applestr
+	mov dh, 0x1
+	mov dl, 24
+	call _printstr
+
+	mov si, levelstr
+	mov dh, 43
+	mov dl, 24
+	call _printstr
+
 	mov dh, 1
 	mov dl, 0
 	mov si, cmdmsg
