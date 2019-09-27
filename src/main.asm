@@ -99,12 +99,59 @@ _initmap:
 	mov ch, 0x12
 	call _pchar
 
+	mov al, [menukey]
+	cmp al, 1
+	je .maze0
+	cmp al, 2
+	je .maze1
+	cmp al, 3
+	je .maze2
+
+.maze0:	
+	call _maze0
+	jmp .exit
+.maze1:
 	call _maze1
+	jmp .exit
+.maze2:	
+	call _maze2
 	
+.exit:
 	pop dx
 	pop cx
 	pop bx
 	pop ax
+	ret
+
+_maze0:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	mov dl, 1
+	mov dh, 1
+	mov cl, 10
+	mov ch, 1
+	call _makewall
+
+	mov dl, 4
+	mov dh, 4
+	mov cl, 10
+	mov ch, 0
+	call _makewall
+
+	mov dl, 15
+	mov dh, 30
+	mov cl, 10
+	mov ch, 1
+	call _makewall
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
 	ret
 
 _maze1:
@@ -113,8 +160,39 @@ _maze1:
 	push cx
 	push dx
 
+	mov dl, 7
+	mov dh, 7
+	mov cl, 10
+	mov ch, 1
+	call _makewall
+
 	mov dl, 4
 	mov dh, 4
+	mov cl, 10
+	mov ch, 0
+	call _makewall
+
+	mov dl, 15
+	mov dh, 30
+	mov cl, 10
+	mov ch, 1
+	call _makewall
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
+_maze2:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	mov dl, 10
+	mov dh, 50
 	mov cl, 10
 	mov ch, 1
 	call _makewall
@@ -319,7 +397,7 @@ _snakeupdate:
 	call _neworange 				;llamada a crear la fruta nueva despues de comerla
 	call _newlemon 					;llamada a crear la fruta nueva despues de comerla
 	inc byte [applecont]
-	jmp .skip2
+	jmp .skip3
 .lemonupdate:
 	inc byte [length]
 	inc byte [length]
@@ -330,10 +408,11 @@ _snakeupdate:
 	call _snakeupdate
 	jmp .skip2
 
+.skip3:
 	mov ah, [applecont]
-	cmp ah, 4
+	cmp ah, 2
 	jne .skip2
-	call _winning
+	call _nextlvl
 
 .skip2:
 	mov [typemap+bx], byte 0x2		;codigo de serpiente = 2
@@ -366,6 +445,36 @@ _snakeupdate:
 	ret
 
 
+_nextlvl:
+	push bx
+	push cx
+	push dx
+
+	mov ch, 0
+	call _clear
+
+	mov si, nextlvlstr
+	mov dh, 35
+	mov dl, 12
+	call _printstr
+
+	mov ax, 150
+	call _sleep
+
+	mov ch, 0
+	call _clear
+
+	mov [applecont], byte 0
+	inc byte [menukey]
+
+	jmp _initgame
+
+	pop dx
+	pop cx
+	pop bx
+
+	ret
+
 _winning:
 	push bx
 	push cx
@@ -377,6 +486,7 @@ _winning:
 
 	mov ax, 15
 	call _sleep
+
 
 	mov si, winstr
 	mov dh, 35
@@ -1118,6 +1228,7 @@ menupause db ": Restart[r] || Quit: [q]",0
 applestr db "apples: ", 0
 levelstr db "level: ", 0
 winstr db "WINNER ", 0
+nextlvlstr db "Next level ", 0
 
 
 
