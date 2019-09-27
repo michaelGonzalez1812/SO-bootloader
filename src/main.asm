@@ -45,9 +45,28 @@ _initgame:
 	cmp ax, 1
 	je _idle
 
-	mov ax, 0x8
+
+	mov bl, [menukey]
+	cmp bl, 0x1
+	je .speed1
+	cmp bl, 0x2
+	je .speed2
+	cmp bl, 0x3
+	je .speed3
+
+.speed1:
+	mov ax, 20
+	jmp .nextnew
+.speed2:
+	mov ax, 13
+	jmp .nextnew
+.speed3:
+	mov ax, 8
+
+.nextnew:
 	call _sleep		
-	jmp .loop	
+	jmp .loop
+
 
 _idle:
 	jmp _idle
