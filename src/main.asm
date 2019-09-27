@@ -693,37 +693,51 @@ _updatefruits:
 	push bx
 	push cx
 	push dx
+
 	mov bx, 0
+	xor ax, ax
 .loop:
-	cmp bx, [length]
+	cmp ax, 2000
 	je .exit
-	mov al, [typemap+bx]
-	inc bx							;aumenta el indice el array
-	;mov ebx, bx
-	mov ecx, 0x80
-	idiv ecx						;division ecx/ebx
-	cmp al, 3
+
+	mov bx, ax
+	mov cl, byte [typemap+bx]
+	xor bx, bx
+	mov bl, cl
+	xor cx, cx
+	mov cx, 80
+	
+	push bx
+	push ax
+	div cx							;division ebx/ecx
+	mov dh, dl
+	mov dl, al
+	pop ax
+	pop bx
+
+	cmp bl, 3
 	je .printapple
-	cmp al, 4
+	cmp bl, 4
 	je .printlemon
-	cmp al, 5
+	cmp bl, 5
 	je .printorange
-	jne .loop
+	jmp .next
 
 .printapple:
-	mov cl, [applechar]
-	;mov dh, eax
-	;mov dl, edx
-	
+	mov cx, applechar
+	call _pchar
+	jmp .next
 .printlemon:
-	mov cl, [applechar]
-	;mov dh, eax
-	;mov dl, edx
-
+	mov cx, lemonchar
+	call _pchar
+	jmp .next
 .printorange:
-	mov cl, [applechar]
-	;mov dh, eax
-	;mov dl, edx
+	mov cx, orangechar
+	call _pchar
+
+.next:
+	inc ax 
+	jmp .loop
 
 .exit:
 	pop dx
@@ -1144,24 +1158,33 @@ _stop:
 	push bx
 	push cx
 	push dx
+	
 	mov bl, [stop1]
+
 	cmp bl, byte 0
-	je .loop
-.clearpause:
+	je .exit
+
+	xor cx, cx
 	call _clear
 	mov si, menupause 				;crea el menu
 	call _printmenu 				;imprime el menu pausa
-
+	
 .loop:
 	mov bl, [stop1]
 	cmp bl, byte 1
 	je .loop
 
-	;call _initmap
-	;call _printstr
-	;call _mapupdate
-	;call _snakeupdate
-	;call _updatefruits
+	xor cx, cx
+	call _clear
+
+	call _updatefruits
+	
+	mov dh, 1
+	mov dl, 0
+	mov si, cmdmsg
+	call _printstr
+	
+.exit:
 	pop dx
 	pop cx
 	pop bx
@@ -1179,6 +1202,7 @@ _reset:
 	cmp bl, byte 1
 	jne .skip
 	mov [reset], byte 0
+	mov [length], byte 2
 	jmp _initgame
 .skip:
 	pop dx
