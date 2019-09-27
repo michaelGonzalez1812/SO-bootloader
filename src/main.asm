@@ -89,7 +89,6 @@ _initmap:
 	cmp bx, 2000
 	jne .loop
 
-
 	;update the apple count
 	mov dl, 24
 	mov dh, 50
@@ -100,22 +99,44 @@ _initmap:
 	mov ch, 0x12
 	call _pchar
 
+	call _maze1
 	
-	mov dl, 4
-	mov dh, 4
-	mov cl, 4
-	mov ch, 1
-;	call _makewall
-
 	pop dx
 	pop cx
 	pop bx
 	pop ax
 	ret
 
+_maze1:
+	push ax
+	push bx
+	push cx
+	push dx
 
+	mov dl, 4
+	mov dh, 4
+	mov cl, 10
+	mov ch, 1
+	call _makewall
 
+	mov dl, 4
+	mov dh, 4
+	mov cl, 10
+	mov ch, 0
+	call _makewall
 
+	mov dl, 15
+	mov dh, 30
+	mov cl, 10
+	mov ch, 1
+	call _makewall
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
 ;*****************************************
 ; description: modify the typemap matrix
 ; input:
@@ -133,29 +154,45 @@ _makewall:
 
 .loop1:
 	xor ax, ax
+	xor bx, bx
+	
 	mov al, dl
 	mov bx, 80
+	push dx
 	mul bx
-	add al, dh
+	pop dx
+	xor bx, bx
+	mov bl, dh
+	add ax, bx
 	xor bx, bx
 	mov bx, ax
-	
-	mov [typemap+bx], byte 0x1			;codigo de pared = 1
-;	push cx
+
+
+	mov [typemap+bx], byte 1
+
+	push cx
+
 	xor cx, cx
 	mov cx, borderchar
-	;mov dl, 4
-	;mov dh, 4
 	call _pchar
-;	pop cx
+	pop cx
+
+	cmp ch, 1
+	je .horizontal
 	inc dl
-	cmp dl, 10
+	jmp .skip
+.horizontal:
+	inc dh	
+.skip:
+	dec cl
+	cmp cl, 0
 	jne .loop1
 
 	pop dx
 	pop cx
 	pop bx
 	pop ax
+
 	ret
 
 ;Updates map
@@ -293,6 +330,11 @@ _snakeupdate:
 	call _snakeupdate
 	jmp .skip2
 
+	mov ah, [applecont]
+	cmp ah, 4
+	jne .skip2
+	call _winning
+
 .skip2:
 	mov [typemap+bx], byte 0x2		;codigo de serpiente = 2
 	mov al, [length]
@@ -309,7 +351,43 @@ _snakeupdate:
 
 	ret	
 .failure:
+
+	mov dl, 2
+	mov dh, 2
+	xor cx, cx
+	mov cx, borderchar
+	call _pchar
+	
 	mov ax, 1
+	pop dx
+	pop cx
+	pop bx
+
+	ret
+
+
+_winning:
+	push bx
+	push cx
+	push dx
+
+.loop:	
+	mov ch, 0
+	call _clear
+
+	mov ax, 15
+	call _sleep
+
+	mov si, winstr
+	mov dh, 35
+	mov dl, 12
+	call _printstr
+	
+	mov ax, 25
+	call _sleep
+
+	jmp .loop	
+
 	pop dx
 	pop cx
 	pop bx
@@ -644,7 +722,7 @@ _sleep:
 	xor ax, ax
 .loop:
 	mov ax, [sleepleft]
-	cmp ax, 0
+	cmp ax, 0 
 	je .exit
 	sti
 	times 30 nop
@@ -1039,6 +1117,7 @@ menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
 menupause db ": Restart[r] || Quit: [q]",0
 applestr db "apples: ", 0
 levelstr db "level: ", 0
+winstr db "WINNER ", 0
 
 
 
