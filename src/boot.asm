@@ -27,20 +27,10 @@ boot:
     fileSysType:       db    "FAT12   "
 
 main:
-        
-;    mov ax, 07C0h       ; Set up 4K stack space after this bootloader
-;    add ax, 288     ; (4096 + 512) / 16 bytes per paragraph
-;    mov ss, ax
-;    mov sp, 4096
+	mov si, presmsg
+	call _print
+    call _wait
 
-;    mov ax, 07C0h       ; Set data segment to where we're loaded
-;    mov ds, ax
-    
-    ;Reset disk system
-;    mov ah, 0
-;    int 0x13 ; 0x13 ah=0 dl = drive number
-
-    ;Read from harddrive and write to RAM
     mov ah, 0x02          ; ah = 2: read from drive
     mov cl, 0x02          ; sector         = 2
     mov al, 8 		   ; al = amount of sectors to read
@@ -49,11 +39,46 @@ main:
     xor bx, bx
     mov es, bx
     mov bx, 0x8000     ; bx = address to write the kernel to    
-    ;mov es, bx        ; ES=0x0000
     
     int 0x13   		   ; => ah = status, al = amount read
     jmp 0x0000:0x8000
-    times 510-($-$$) db 0
-    ;Begin MBR Signature
-    db 0x55 ;byte 511 = 0x55
-    db 0xAA ;byte 512 = 0xAA
+
+;Prints null-terminated string
+;Input  : SI - pointer to string
+;Output :
+_print:
+	push ax
+	push bx
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 0x7
+.loop:
+	lodsb ;loads the character in to al from si reg
+	cmp al, 0
+	je .exit
+	int 0x10
+	jmp .loop	
+.exit:
+	pop bx
+	pop ax
+	ret
+
+;Waits for key press
+;Input  :
+;Output :
+_wait:
+	push ax
+
+	mov ah, 0x00
+	int 0x16
+
+	pop ax
+	ret
+	
+
+presmsg db "Press any key to continue...  ",0
+
+times 510-($-$$) db 0
+;Begin MBR Signature
+db 0x55 ;byte 511 = 0x55
+db 0xAA ;byte 512 = 0xAA
