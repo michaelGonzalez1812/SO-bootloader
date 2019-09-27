@@ -41,6 +41,7 @@ _initgame:
 	call _neworange
 
 .loop:
+	call _stop
 	call _stepPRNG
 	call _mapupdate
 	call _snakeupdate
@@ -676,12 +677,11 @@ _handle1:
 	cmp al, 0x4b
 	mov [direction], byte 3
 	je .exit
-	cmp al, 0xa6
-	mov [direction], byte 4
-	je .exit
 
 	mov [direction], bl
 
+
+	mov bl, [menukey]
 	cmp al, 0x02
 	mov [menukey], byte 0x1
 	je .exit
@@ -693,8 +693,18 @@ _handle1:
 	cmp al, 0x04
 	mov [menukey], byte 0x3
 	je .exit
-
+	mov [menukey], bl
 	
+	mov bl, [stop1]
+	cmp al, 0x26
+	jne .exit
+	cmp bl, 0x0
+	je .stopint
+	mov [stop1], byte 0x0
+	jmp .exit
+.stopint:
+	mov [stop1], byte 0x1
+
 .exit:
 	mov al, 0x20
 	out 0x20, al
@@ -871,6 +881,27 @@ _printmenu:
 
 	ret
 
+
+_stop:
+	push ax
+	push bx
+	push cx
+	push dx
+
+.loop:
+	mov bl, [stop1]
+	cmp bl, byte 1
+	je .loop
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	ret
+
+
+
 ; Waits until press a key for level
 _waitlvl:
 	push ax
@@ -917,6 +948,8 @@ currentPRN dw 0
 
 direction db 0
 length db 2
+
+stop1 db 0
 
 menukey db 0
 
