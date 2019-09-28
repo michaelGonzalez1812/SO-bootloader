@@ -2,17 +2,28 @@
 [BITS 16]
 
 _main:
-	call _clear 					;limpia la ppantalla
-
-	mov si, menulvl 				;crea el menu
-	call _printmenu 				;imprime el menu
-
 	call _initpic
 	call _initirq1
 
+_restart:	
+	xor cx, cx
+	call _clear 					;limpia la ppantalla
+
+	mov [restart], byte 0
+	mov [reset], byte 0
+	mov [level], byte 0
+	mov [snakeXpos], byte 70
+	mov [snakeYpos], byte 20
+	mov [direction], byte 0
+	mov [length], byte 2
+	mov [applecont], byte 0
+
+	mov si, menulvl 				;crea el menu
+	call _printmenu 				;imprime el menu
 	call _waitlvl
 
 _initgame:
+	xor cx, cx
 	call _clear 					;limpia la ppantalla
 	call _initPRNG
 	call _initmap	
@@ -46,7 +57,7 @@ _initgame:
 	je _idle
 
 
-	mov bl, [menukey]
+	mov bl, [level]
 	cmp bl, 0x1
 	je .speed1
 	cmp bl, 0x2
@@ -61,7 +72,7 @@ _initgame:
 	mov ax, 13
 	jmp .nextnew
 .speed3:
-	mov ax, 8
+	mov ax, 3
 
 .nextnew:
 	call _sleep		
@@ -69,6 +80,8 @@ _initgame:
 
 
 _idle:
+	cmp [reset], byte 1
+	je _restart
 	jmp _idle
 
 ;Inits map
@@ -112,13 +125,13 @@ _initmap:
 	mov dl, 24
 	mov dh, 50
 	xor eax, eax
-	mov al, byte [menukey]
+	mov al, byte [level]
 	call _inttostr
 	mov cx, di
 	mov ch, 0x12
 	call _pchar
 
-	mov al, [menukey]
+	mov al, [level]
 	cmp al, 1
 	je .maze0
 	cmp al, 2
@@ -148,8 +161,8 @@ _maze0:
 	push cx
 	push dx
 
-	mov dl, 1
-	mov dh, 1
+	mov dl, 3
+	mov dh, 3
 	mov cl, 10
 	mov ch, 1
 	call _makewall
@@ -226,6 +239,24 @@ _maze2:
 	mov dh, 30
 	mov cl, 10
 	mov ch, 1
+	call _makewall
+
+	mov dl, 6
+	mov dh, 71
+	mov cl, 20
+	mov ch, 0
+	call _makewall
+
+	mov dl, 6
+	mov dh, 20
+	mov cl, 20
+	mov ch, 1
+	call _makewall
+	
+	mov dl, 6
+	mov dh, 20
+	mov cl, 15
+	mov ch, 0
 	call _makewall
 
 	pop dx
@@ -448,14 +479,7 @@ _snakeupdate:
 	pop bx
 
 	ret	
-.failure:
-
-	mov dl, 2
-	mov dh, 2
-	xor cx, cx
-	mov cx, borderchar
-	call _pchar
-	
+.failure:	
 	mov ax, 1
 	pop dx
 	pop cx
@@ -468,6 +492,9 @@ _nextlvl:
 	push bx
 	push cx
 	push dx
+
+	cmp [level], byte 3
+	je .winning
 
 	mov ch, 0
 	call _clear
@@ -484,7 +511,7 @@ _nextlvl:
 	call _clear
 
 	mov [applecont], byte 0
-	inc byte [menukey]
+	inc byte [level]
 
 	jmp _initgame
 
@@ -494,18 +521,15 @@ _nextlvl:
 
 	ret
 
-_winning:
-	push bx
-	push cx
-	push dx
-
+.winning:
+	xor bx, bx
+	
 .loop:	
-	mov ch, 0
+	xor cx, cx
 	call _clear
 
 	mov ax, 15
 	call _sleep
-
 
 	mov si, winstr
 	mov dh, 35
@@ -515,13 +539,12 @@ _winning:
 	mov ax, 25
 	call _sleep
 
-	jmp .loop	
+	inc bx
+	cmp bx, 10
+	jne .loop	
 
-	pop dx
-	pop cx
-	pop bx
+	jmp _restart
 
-	ret
 
 ;Creates new apple on the map
 ;Input  :
@@ -1013,20 +1036,33 @@ _handle1:
 	mov [direction], bl
 
 
-	mov bl, [menukey]
+	mov bl, [level]
 	cmp al, 0x02
-	mov [menukey], byte 0x1
+	mov [level], byte 0x1
 	je .exit
 
 	cmp al, 0x03
-	mov [menukey], byte 0x2
+	mov [level], byte 0x2
 	je .exit
 
 	cmp al, 0x04
-	mov [menukey], byte 0x3
+	mov [level], byte 0x3
 	je .exit
-	mov [menukey], bl
-	
+	mov [level], bl
+
+	cmp al, 0x13
+	jne .skiprestart
+	mov cl, byte [stop1]
+	cmp cl, byte 1
+	jne .exit
+	mov ch, byte 1
+	xor ch, bl
+	mov [stop1], byte 0
+	mov [restart], byte ch
+	jmp .exit
+
+.skiprestart:
+
 	mov bl, [stop1]
 	cmp al, 0x26
 	jne .exit
@@ -1238,6 +1274,10 @@ _stop:
 	cmp bl, byte 1
 	je .loop
 
+	mov bl, [restart]
+	cmp bl, byte 1
+	je _restart
+
 	xor cx, cx
 	call _clear
 
@@ -1247,7 +1287,7 @@ _stop:
 	mov dl, 24
 	mov dh, 50
 	xor eax, eax
-	mov al, byte [menukey]
+	mov al, byte [level]
 	call _inttostr
 	mov cx, di
 	mov ch, 0x12
@@ -1287,7 +1327,7 @@ _reset:
 	jne .skip
 	mov [reset], byte 0
 	mov [length], byte 2
-	jmp _initgame
+	jmp _restart
 .skip:
 	pop dx
 	pop cx
@@ -1302,10 +1342,10 @@ _waitlvl:
 	push ax
 	push bx
 	
-	mov [menukey], byte 0x00
+	mov [level], byte 0x00
 
 .loop:
-	mov al, byte[menukey]
+	mov al, byte[level]
 	cmp al, 0x00
 	je .loop
 
@@ -1332,7 +1372,7 @@ _waitlvl:
 ;------------------------------
 cmdmsg db "arrows: up, down, left, right || l = pause || space = reverse",0
 menulvl db "Easy: [1] || Medium: [2] || Hard: [3]",0
-menupause db ": Restart[r] || Quit: [q]",0
+menupause db ": Restart[r] || Continue: [l]",0
 applestr db "apples: ", 0
 levelstr db "level: ", 0
 winstr db "WINNER ", 0
@@ -1348,10 +1388,11 @@ direction db 0
 length db 2
 
 stop1 db 0
+restart db 0
 
 reset db 0
 
-menukey db 0
+level db 0
 
 snakeXpos db 70
 snakeYpos db 20
