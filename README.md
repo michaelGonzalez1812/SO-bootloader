@@ -18,7 +18,7 @@ make
 
 Para ejectuar utilizando el emulador qemu ejecute el siguiente comando
 ```
-qemu-system-x86_64 -fda build/snake.flp
+qemu-system-x86_64 build/snake.bin
 ```
 
 para crear una dispositivo usb booteable ejecute el siguiente comando con permisos de superusuario
